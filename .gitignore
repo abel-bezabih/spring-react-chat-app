@@ -1,0 +1,11 @@
+# Backend
+/target
+*.log
+
+# Frontend
+chat-frontend/node_modules
+chat-frontend/dist
+
+# General
+.DS_Store
+*.class
