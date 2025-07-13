@@ -1,0 +1,21 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "WebChatApplication",
+            "request": "launch",
+            "mainClass": "com.example.webchat.WebChatApplication",
+            "projectName": "web-chat"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-App<web-chat>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.example.webchat.App",
+            "projectName": "web-chat",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}
