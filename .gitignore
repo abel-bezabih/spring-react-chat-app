@@ -1,5 +1,7 @@
 # Backend
 /target
+web-chat/target/
+web-chat/data/
 *.log
 
 # Frontend

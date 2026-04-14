@@ -37,6 +37,9 @@
     errCreateChannel: document.getElementById("err-create-channel"),
     btnAddChannel: document.getElementById("btn-add-channel"),
     channelFilter: document.getElementById("channel-filter"),
+    sendIssue: document.getElementById("send-issue"),
+    sendIssueText: document.getElementById("send-issue-text"),
+    btnRetrySend: document.getElementById("btn-retry-send"),
   };
 
   const btnLoginSubmit = document.getElementById("btn-login-submit");
@@ -66,6 +69,10 @@
   let channelFilterText = "";
   let pendingGotoKey = false;
   let pendingGotoTimer = null;
+  let reconnectTimer = null;
+  let reconnectAttempts = 0;
+  let reconnectToastShown = false;
+  let pendingMessagePayload = null;
 
   let lastDayKey = null;
   let lastMsgSender = null;
@@ -619,6 +626,7 @@
     if (id === selectedChannelId) return;
     selectedChannelId = id;
     sessionStorage.setItem(CHANNEL_KEY, String(selectedChannelId));
+    clearSendIssue();
     el.typing.textContent = "";
     seenIds.clear();
     resetThreadState();
@@ -789,12 +797,19 @@
 
     ws.onopen = function () {
       wsHadConnected = true;
+      reconnectAttempts = 0;
+      reconnectToastShown = false;
+      if (reconnectTimer) {
+        clearTimeout(reconnectTimer);
+        reconnectTimer = null;
+      }
       setStatus("live");
+      flushPendingMessage();
     };
     ws.onclose = function () {
       setStatus("off");
       if (wsHadConnected && !closingWsOnPurpose && !el.chat.classList.contains("hidden")) {
-        toast("Real-time connection lost. Refresh the page if messages stop updating.", "warning", 6500);
+        scheduleReconnect();
       }
     };
     ws.onerror = function () {
@@ -808,20 +823,66 @@
   function sendChat() {
     var text = (el.input.value || "").trim();
     if (!text) return;
-    if (!ws || ws.readyState !== WebSocket.OPEN) {
-      toast("Not connected yet. Wait until status shows Connected.", "warning");
-      return;
-    }
-    ws.send(
-      JSON.stringify({
-        type: "MESSAGE",
-        content: text,
-        clientMessageId: crypto.randomUUID(),
-      })
-    );
+    var payload = {
+      type: "MESSAGE",
+      content: text,
+      clientMessageId: crypto.randomUUID(),
+    };
     el.input.value = "";
     autoResizeComposer();
     sendTyping(false);
+    attemptSendPayload(payload, false);
+  }
+
+  function scheduleReconnect() {
+    if (reconnectTimer || closingWsOnPurpose || el.chat.classList.contains("hidden")) return;
+    reconnectAttempts++;
+    var delay = Math.min(1000 * Math.pow(2, reconnectAttempts - 1), 10000);
+    if (!reconnectToastShown) {
+      toast("Connection lost. Reconnecting automatically...", "warning", 3500);
+      reconnectToastShown = true;
+    } else {
+      toast("Still reconnecting...", "info", 2000);
+    }
+    reconnectTimer = setTimeout(function () {
+      reconnectTimer = null;
+      if (!el.chat.classList.contains("hidden") && token && selectedChannelId != null) {
+        connectWs();
+      }
+    }, delay);
+  }
+
+  function showSendIssue(message) {
+    pendingMessagePayload = message;
+    if (!el.sendIssue || !el.sendIssueText) return;
+    el.sendIssueText.textContent = "Message not sent. We will retry when connected.";
+    el.sendIssue.classList.remove("hidden");
+  }
+
+  function clearSendIssue() {
+    pendingMessagePayload = null;
+    if (!el.sendIssue) return;
+    el.sendIssue.classList.add("hidden");
+  }
+
+  function attemptSendPayload(payload, fromRetry) {
+    if (!ws || ws.readyState !== WebSocket.OPEN) {
+      showSendIssue(payload);
+      if (!fromRetry) toast("Not connected. Message queued to retry.", "warning");
+      return;
+    }
+    try {
+      ws.send(JSON.stringify(payload));
+      clearSendIssue();
+    } catch (e) {
+      showSendIssue(payload);
+      toast("Send failed. Tap retry when connected.", "warning");
+    }
+  }
+
+  function flushPendingMessage() {
+    if (!pendingMessagePayload) return;
+    attemptSendPayload(pendingMessagePayload, true);
   }
 
   function sendTyping(active) {
@@ -847,6 +908,7 @@
     token = null;
     username = "";
     clearTokenStorage();
+    clearSendIssue();
     stripChannelQueryFromUrl();
     document.title = "Aurora";
     if (ws) {
@@ -856,6 +918,12 @@
       } catch (e) {}
       closingWsOnPurpose = false;
     }
+    if (reconnectTimer) {
+      clearTimeout(reconnectTimer);
+      reconnectTimer = null;
+    }
+    reconnectAttempts = 0;
+    reconnectToastShown = false;
     ws = null;
     el.chat.classList.add("hidden");
     el.landing.classList.remove("hidden");
@@ -868,6 +936,7 @@
     token = null;
     username = "";
     clearTokenStorage();
+    clearSendIssue();
     stripChannelQueryFromUrl();
     document.title = "Aurora";
     if (ws) {
@@ -877,6 +946,12 @@
       } catch (e) {}
       closingWsOnPurpose = false;
     }
+    if (reconnectTimer) {
+      clearTimeout(reconnectTimer);
+      reconnectTimer = null;
+    }
+    reconnectAttempts = 0;
+    reconnectToastShown = false;
     ws = null;
     el.chat.classList.add("hidden");
     el.landing.classList.remove("hidden");
@@ -1155,6 +1230,12 @@
   });
 
   el.btnSend.addEventListener("click", sendChat);
+  if (el.btnRetrySend) {
+    el.btnRetrySend.addEventListener("click", function () {
+      if (!pendingMessagePayload) return;
+      attemptSendPayload(pendingMessagePayload, true);
+    });
+  }
   el.input.addEventListener("keydown", function (e) {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();

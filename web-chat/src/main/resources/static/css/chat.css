@@ -1223,6 +1223,36 @@ html, body {
   color: var(--text-secondary);
 }
 
+.send-issue {
+  margin: 0.45rem 0 0;
+  padding: 0.45rem 0.6rem;
+  border-radius: 8px;
+  border: 1px solid rgba(224, 30, 90, 0.35);
+  background: rgba(224, 30, 90, 0.08);
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.send-issue-btn {
+  border: 1px solid var(--header-border);
+  border-radius: 6px;
+  background: var(--main-bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.76rem;
+  font-weight: 600;
+  padding: 0.25rem 0.55rem;
+  cursor: pointer;
+}
+
+.send-issue-btn:hover {
+  background: var(--bubble-other);
+}
+
 .composer-hint kbd {
   font-size: 0.68rem;
   padding: 0.1rem 0.3rem;
