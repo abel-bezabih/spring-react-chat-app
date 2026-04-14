@@ -2,16 +2,33 @@ package com.example.webchat;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
 
 @Component
 public class JwtUtil {
 
-    private final Key key = Keys.secretKeyFor(SignatureAlgorithm.HS256); // ✅ You can store in env later
-    private final long expirationMs = 24 * 60 * 60 * 1000; // 24 hours
+    @Value("${jwt.secret}")
+    private String secret;
+
+    @Value("${jwt.expiration-ms:86400000}")
+    private long expirationMs;
+
+    private Key key;
+
+    @PostConstruct
+    void initSigningKey() {
+        byte[] bytes = secret.getBytes(StandardCharsets.UTF_8);
+        if (bytes.length < 32) {
+            throw new IllegalStateException("jwt.secret must be at least 32 bytes (256 bits) for HS256");
+        }
+        key = Keys.hmacShaKeyFor(bytes);
+    }
 
     public String generateToken(String username) {
         return Jwts.builder()

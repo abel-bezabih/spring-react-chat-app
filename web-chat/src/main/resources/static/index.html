@@ -1,30 +1,298 @@
 <!DOCTYPE html>
-<html>
+<html lang="en" data-theme="dark">
 <head>
-    <title>Web Chat</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#1a1d21" />
+  <meta name="description" content="Aurora — team chat that feels instant." />
+  <title>Aurora</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/chat.css" />
 </head>
 <body>
-    <h2>WebSocket Chat</h2>
-    <input type="text" id="username" placeholder="Your name" />
-    <input type="text" id="message" placeholder="Enter message" />
-    <button onclick="sendMessage()">Send</button>
-    <ul id="chat"></ul>
+  <a href="#auth-panel" class="skip-link">Skip to sign in</a>
 
-    <script>
-        const socket = new WebSocket("ws://localhost:8080/chat");
+  <!-- Landing / auth -->
+  <div class="landing" id="landing-wrap">
+    <div class="landing-topbar">
+      <button type="button" class="landing-theme-btn" id="btn-theme-landing" title="Appearance" aria-label="Toggle light and dark theme">
+        <span class="theme-icon theme-icon-dark" aria-hidden="true">☾</span>
+        <span class="theme-icon theme-icon-light" aria-hidden="true">☀</span>
+      </button>
+    </div>
+    <div class="landing-inner">
+      <div class="landing-brand">
+        <div class="logo-mark" aria-hidden="true">A</div>
+        <div>
+          <h1>Aurora</h1>
+          <p class="landing-tagline">Where your team talks in real time.</p>
+        </div>
+      </div>
 
-        socket.onmessage = function(event) {
-            const li = document.createElement("li");
-            li.innerText = event.data;
-            document.getElementById("chat").appendChild(li);
-        };
+      <section id="auth-panel" class="auth-card" aria-labelledby="auth-heading">
+        <header class="auth-card-head">
+          <h2 id="auth-heading" class="auth-title">Welcome back</h2>
+          <p id="auth-sublead" class="auth-sublead">Sign in to continue to Aurora.</p>
+        </header>
+        <div class="tabs" role="tablist" aria-label="Sign in or create account">
+          <button type="button" class="tab" id="tab-login" role="tab" aria-selected="true" aria-controls="form-login" tabindex="0">Sign in</button>
+          <button type="button" class="tab" id="tab-register" role="tab" aria-selected="false" aria-controls="form-register" tabindex="-1">Create account</button>
+        </div>
+        <form id="form-login" role="tabpanel" aria-labelledby="tab-login" novalidate>
+          <div class="field">
+            <label for="login-user">Username</label>
+            <input
+              id="login-user"
+              name="username"
+              autocomplete="username"
+              autocapitalize="off"
+              autocorrect="off"
+              spellcheck="false"
+              required
+              minlength="2"
+              maxlength="64"
+              placeholder="your.name"
+            />
+            <p id="err-login-user" class="field-error" role="alert"></p>
+          </div>
+          <div class="field">
+            <label for="login-pass">Password</label>
+            <div class="input-with-toggle">
+              <input id="login-pass" name="password" type="password" autocomplete="current-password" required />
+              <button type="button" class="toggle-pass" data-target="login-pass" aria-label="Show password" aria-pressed="false">Show</button>
+            </div>
+            <p id="err-login-pass" class="field-error" role="alert"></p>
+          </div>
+          <button type="submit" class="btn btn-primary btn-auth-submit" id="btn-login-submit"><span class="btn-label">Sign in</span></button>
+        </form>
+        <form id="form-register" class="hidden" role="tabpanel" aria-labelledby="tab-register" novalidate>
+          <div class="field">
+            <label for="reg-user">Username</label>
+            <input
+              id="reg-user"
+              name="username"
+              autocomplete="username"
+              autocapitalize="off"
+              autocorrect="off"
+              spellcheck="false"
+              required
+              minlength="2"
+              maxlength="64"
+              placeholder="jane.doe"
+            />
+            <p class="field-hint">This is how teammates see you in channels.</p>
+            <p id="err-reg-user" class="field-error" role="alert"></p>
+          </div>
+          <div class="field">
+            <label for="reg-pass">Password</label>
+            <div class="input-with-toggle">
+              <input id="reg-pass" name="password" type="password" autocomplete="new-password" required minlength="6" maxlength="128" />
+              <button type="button" class="toggle-pass" data-target="reg-pass" aria-label="Show password" aria-pressed="false">Show</button>
+            </div>
+            <div id="pw-strength" class="pw-strength" data-strength="0" aria-hidden="true">
+              <div class="pw-strength-bars" role="presentation">
+                <span class="pw-bar"></span><span class="pw-bar"></span><span class="pw-bar"></span>
+              </div>
+              <span id="pw-strength-label" class="pw-strength-label"></span>
+            </div>
+            <p class="field-hint">Use at least 6 characters. Longer is better.</p>
+            <p id="err-reg-pass" class="field-error" role="alert"></p>
+          </div>
+          <div class="field">
+            <label for="reg-pass-confirm">Confirm password</label>
+            <div class="input-with-toggle">
+              <input id="reg-pass-confirm" name="password2" type="password" autocomplete="new-password" required />
+              <button type="button" class="toggle-pass" data-target="reg-pass-confirm" aria-label="Show password confirmation" aria-pressed="false">Show</button>
+            </div>
+            <p id="err-reg-confirm" class="field-error" role="alert"></p>
+          </div>
+          <button type="submit" class="btn btn-primary btn-auth-submit" id="btn-register-submit"><span class="btn-label">Create account</span></button>
+        </form>
+        <p id="err-auth" class="error-msg error-msg--global" role="alert" aria-live="assertive"></p>
+        <p class="auth-trust" role="note">
+          <span class="auth-trust-icon" aria-hidden="true">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </span>
+          Secure sign-in · Your session stays in this browser tab
+        </p>
+      </section>
 
-        function sendMessage() {
-            const name = document.getElementById("username").value;
-            const msg = document.getElementById("message").value;
-            socket.send(name + ": " + msg);
-            document.getElementById("message").value = "";
-        }
-    </script>
+      <footer class="landing-footer">
+        <button type="button" class="link-quiet" id="btn-replay-tour">Product tour</button>
+        <span class="footer-sep" aria-hidden="true">·</span>
+        <span>JWT in sessionStorage · cleared when you close the tab</span>
+      </footer>
+    </div>
+  </div>
+
+  <!-- Workspace (Slack-style shell) -->
+  <div id="chat-panel" class="workspace hidden" aria-label="Workspace">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="workspace-switcher">
+          <span class="workspace-initials" aria-hidden="true">A</span>
+          <div class="workspace-meta">
+            <span class="workspace-name">Aurora</span>
+            <span class="workspace-plan">Free</span>
+          </div>
+        </div>
+        <button type="button" class="icon-btn" id="btn-theme" title="Toggle theme" aria-label="Toggle light and dark theme">
+          <span class="theme-icon theme-icon-dark" aria-hidden="true">☾</span>
+          <span class="theme-icon theme-icon-light" aria-hidden="true">☀</span>
+        </button>
+      </div>
+
+      <nav class="sidebar-nav" aria-label="Channels">
+        <div class="nav-section-row">
+          <div class="nav-section-label">Channels</div>
+          <button type="button" class="nav-add-btn" id="btn-add-channel" title="Create channel" aria-label="Create channel">+</button>
+        </div>
+        <div class="channel-filter-wrap">
+          <label for="channel-filter" class="visually-hidden">Filter channels</label>
+          <input id="channel-filter" class="channel-filter-input" type="search" placeholder="Filter channels" autocomplete="off" />
+        </div>
+        <div id="channel-list" class="channel-list" role="list"></div>
+      </nav>
+
+      <div class="sidebar-spacer"></div>
+
+      <div class="sidebar-footer">
+        <div class="sidebar-user">
+          <div class="avatar" id="sidebar-avatar" aria-hidden="true">?</div>
+          <div class="sidebar-user-text">
+            <span class="sidebar-user-name" id="sidebar-user-name">—</span>
+            <span class="sidebar-user-status" id="conn-status" data-state="off" role="status">Offline</span>
+          </div>
+        </div>
+        <div class="sidebar-actions">
+          <button type="button" class="sidebar-link" id="btn-replay-tour-sidebar">Tour</button>
+          <button type="button" class="sidebar-link danger" id="btn-logout">Sign out</button>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main-pane">
+      <header class="channel-header">
+        <div class="channel-header-main">
+          <h2 class="channel-title" id="channel-title-heading"><span class="hash" aria-hidden="true">#</span><span id="channel-title-text">general</span></h2>
+          <p class="channel-topic" id="channel-topic">Company-wide announcements and casual chat</p>
+        </div>
+        <div class="channel-header-tools">
+          <button
+            type="button"
+            class="header-tool-btn"
+            id="btn-copy-channel-link"
+            aria-label="Copy link to this channel"
+            title="Copy link to this channel"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+              <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+            </svg>
+          </button>
+          <div class="header-shortcuts" title="Keyboard shortcuts">
+            <kbd class="kbd">/</kbd>
+            <span class="header-shortcuts-txt">message</span>
+            <span class="header-shortcuts-sep" aria-hidden="true">·</span>
+            <kbd class="kbd">⌘</kbd><kbd class="kbd">K</kbd>
+            <span class="header-shortcuts-txt">focus</span>
+          </div>
+        </div>
+      </header>
+
+      <div id="messages" class="message-scroller" role="log" aria-live="polite" aria-relevant="additions" aria-busy="false"></div>
+
+      <div class="typing-wrap" aria-live="polite">
+        <p id="typing-line" class="typing-line"></p>
+      </div>
+
+      <div class="composer-outer">
+        <div class="composer">
+          <div class="composer-toolbar">
+            <button type="button" class="tool-btn" id="btn-emoji" title="Add emoji" aria-label="Insert emoji">😀</button>
+            <button type="button" class="tool-btn" disabled title="Attachments coming soon" aria-disabled="true">📎</button>
+          </div>
+          <label for="msg-input" class="visually-hidden" id="msg-input-label">Message</label>
+          <div class="composer-input-wrap">
+            <textarea id="msg-input" rows="1" placeholder="Message a channel…" maxlength="4000" autocomplete="off"></textarea>
+          </div>
+          <button type="button" class="send-fab" id="btn-send" aria-label="Send message">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+          </button>
+        </div>
+        <p class="composer-hint"><kbd>Enter</kbd> to send · <kbd>Shift</kbd>+<kbd>Enter</kbd> new line</p>
+      </div>
+    </main>
+  </div>
+
+  <dialog id="dlg-onboarding" class="modal" aria-labelledby="onb-title">
+    <div class="modal-body onboarding">
+      <button type="button" class="modal-close" id="onb-close" aria-label="Close tour">×</button>
+      <div class="onb-slides">
+        <article class="onb-slide" data-index="0">
+          <div class="onb-icon" aria-hidden="true">✦</div>
+          <h2 id="onb-title">Welcome to Aurora</h2>
+          <p>Create channels, chat in real time, and share links with <code class="onb-code">?channel=…</code> — built for teams that move fast.</p>
+        </article>
+        <article class="onb-slide hidden" data-index="1">
+          <div class="onb-icon" aria-hidden="true">⚡</div>
+          <h2>Stay in sync</h2>
+          <p>Messages stream over WebSockets. History loads per channel, so you can pick up exactly where you left off.</p>
+        </article>
+        <article class="onb-slide hidden" data-index="2">
+          <div class="onb-icon" aria-hidden="true">🔒</div>
+          <h2>Secure session</h2>
+          <p>We store a JWT in <strong>sessionStorage</strong> (cleared when you close the tab). Sign out from the sidebar anytime.</p>
+        </article>
+      </div>
+      <div class="onb-dots" role="tablist" aria-label="Tour steps"></div>
+      <div class="onb-actions">
+        <button type="button" class="btn secondary btn-inline" id="onb-back" hidden>Back</button>
+        <button type="button" class="btn btn-primary btn-inline" id="onb-next">Next</button>
+      </div>
+      <p class="onb-skip-wrap">
+        <button type="button" class="link-quiet" id="onb-skip">Skip tour</button>
+      </p>
+    </div>
+  </dialog>
+
+  <dialog id="dlg-create-channel" class="modal modal-sm">
+    <div class="modal-body">
+      <h2 class="modal-title">Create channel</h2>
+      <p class="modal-text">Channels are where your team discusses topics. Names become a URL-friendly slug.</p>
+      <form id="form-create-channel" class="modal-form">
+        <div class="field">
+          <label for="new-channel-name">Name</label>
+          <input id="new-channel-name" name="name" required minlength="1" maxlength="80" placeholder="e.g. engineering" autocomplete="off" />
+        </div>
+        <div class="field">
+          <label for="new-channel-desc">Description <span class="field-optional">(optional)</span></label>
+          <input id="new-channel-desc" name="description" maxlength="500" placeholder="What is this channel for?" autocomplete="off" />
+        </div>
+        <p id="err-create-channel" class="error-msg" role="alert" aria-live="assertive"></p>
+        <div class="modal-actions">
+          <button type="button" class="btn secondary btn-inline" id="dlg-create-channel-cancel">Cancel</button>
+          <button type="submit" class="btn btn-primary btn-inline" id="dlg-create-channel-submit"><span class="btn-label">Create</span></button>
+        </div>
+      </form>
+    </div>
+  </dialog>
+
+  <dialog id="dlg-logout" class="modal modal-sm">
+    <div class="modal-body">
+      <h2 class="modal-title">Sign out?</h2>
+      <p class="modal-text">You’ll need to sign in again to read and send messages in this tab.</p>
+      <div class="modal-actions">
+        <button type="button" class="btn secondary btn-inline" id="dlg-logout-cancel">Cancel</button>
+        <button type="button" class="btn btn-inline btn-danger" id="dlg-logout-confirm">Sign out</button>
+      </div>
+    </div>
+  </dialog>
+
+  <div id="toasts" class="toasts" aria-live="polite"></div>
+
+  <script src="/js/chat.js"></script>
 </body>
 </html>
