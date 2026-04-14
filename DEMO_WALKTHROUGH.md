@@ -1,10 +1,10 @@
-# Aurora — Demo Walkthrough (1 page)
+# Aurora — Demo Walkthrough
 
 **Stack:** Spring Boot 3 + JPA (H2) + WebSockets + JWT + static SPA (`/css`, `/js`).
 
 ---
 
-## Architecture (30 seconds)
+## Architecture
 
 1. **Browser** loads `static/index.html` → `chat.js` holds JWT in `sessionStorage`.
 2. **REST:** `POST /api/register` / `POST /api/login` → JWT. `GET /api/channels`, `POST /api/channels`, `GET /api/messages?channelId=…` for history.
@@ -13,7 +13,7 @@
 
 ---
 
-## Live demo script (~5 minutes)
+## Live demo script
 
 | Step | Say | Do |
 |------|-----|-----|
@@ -27,21 +27,11 @@
 
 ---
 
-## Talking points (if asked)
+## System Design Prospects
 
 - **Security:** JWT stateless API; WebSocket requires same token + valid `channelId`.
 - **Why channels:** isolates history and broadcast domain without separate “rooms” product complexity.
 - **Trade-offs:** session in `sessionStorage` (tab-scoped); H2 default suitable for demo — production would use Postgres + secrets management.
-
----
-
-## Commands
-
-```bash
-cd web-chat && mvn spring-boot:run
-# http://localhost:8080
-cd web-chat && mvn test
-```
 
 ---
 
