@@ -80,45 +80,12 @@ mvn test
 
 ---
 
-## Configuration
-
-| Property | Purpose |
-|----------|---------|
-| `spring.datasource.url` | Default: file-based H2 under `./data` (see `web-chat/src/main/resources/application.properties`) |
-| `jwt.secret` | **Change for production** — must be ≥ 32 bytes for HS256 |
-| `jwt.expiration-ms` | Token lifetime |
-
-`application.properties` includes commented hints for PostgreSQL.
-
----
-
-## Repository layout
-
-```
-spring-react-chat-app/
-├── web-chat/                 # Spring Boot app (API + static UI)
-│   ├── src/main/java/        # Controllers, security, WebSocket, JPA
-│   └── src/main/resources/
-│       ├── static/           # index.html, css/, js/
-│       └── application.properties
-├── DEMO_WALKTHROUGH.md       # One-page demo script
-└── README.md                 # This file
-```
-
----
-
 ## Production checklist (not implemented here)
 
 - Strong `jwt.secret` from a secret manager; HTTPS everywhere; WSS only.
 - PostgreSQL (or managed SQL), backups, and migration strategy (Flyway/Liquibase).
 - Rate limiting on auth; WebSocket connection limits; observability (metrics/tracing).
 - Optional: Redis for presence/typing at scale; full-text search for messages.
-
----
-
-## Author
-
-**ABEL BEZABIH**
 
 ---
 
